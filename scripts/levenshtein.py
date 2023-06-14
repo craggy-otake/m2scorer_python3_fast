@@ -705,7 +705,7 @@ def transitive_arcs(V, E, dist, edits, max_unchanged_words=2, very_verbose=False
                 eik = edits[(vi, vk)]
             else:
                 continue
-            if eik >= max_unchanged_words:
+            if eik[-1] >= max_unchanged_words:
                 continue
             for j in range(len(V)):
                 vj = V[j]
