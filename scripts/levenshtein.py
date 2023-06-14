@@ -726,15 +726,18 @@ def transitive_arcs(V, E, dist, edits, max_unchanged_words=2, very_verbose=False
     # remove noop transitive arcs 
     if very_verbose:
         print("-- Remove transitive noop arcs --")
+    E_new = []
     for edge in E:
         e = edits[edge]
         if e[0] == 'noop' and dist[edge] > 1:
             if very_verbose:
                 print(" remove noop arc v_i -> vj:", edge)
-            E.remove(edge)
+            # E.remove(edge)
             dist[edge] = float('inf')
             del edits[edge]
-    return(V, E, dist, edits)
+        else:
+            E_new.append(edge)
+    return(V, E_new, dist, edits)
 
 
 # combine two edits into one
