@@ -22,6 +22,7 @@ from util import uniq
 import re
 import sys
 from copy import deepcopy
+import heapq
 
 # batch evaluation of a list of sentences
 def batch_precision(candidates, sources, gold_edits, max_unchanged_words=2, beta=0.5, ignore_whitespace_casing=False, verbose=False):
@@ -463,6 +464,48 @@ def best_edit_seq_bf(V, E, dist, edits, verby_verbose=False):
         v = w
     return editSeq
 
+# find maximally matching edit squence through the graph using dijkstra(if it has negative edge, it can be pseudo polynomial time)
+def best_edit_seq_ds(V, E, dist, edits, verby_verbose=False):
+    E_dict = {}
+    for v in V:
+        E_dict[v] = []
+    for e in E:
+        E_dict[e[0]].append((dist[e], e[1]))
+
+    thisdist = {}
+    for v in V:
+        thisdist[v] = float('inf')
+    thisdist[(0,0)] = 0
+    
+    path = {}
+    s = (0, 0)
+    que = []
+    heapq.heappush(que, (0, s))
+    while que:
+        u, v = heapq.heappop(que)
+        if thisdist[v] < u:
+            continue
+        thisdist[v] = u
+        for e in E_dict[v]:
+            if thisdist[e[1]] <= thisdist[v] + e[0]:
+                continue
+            thisdist[e[1]] = thisdist[v] + e[0]
+            path[e[1]] = v
+            heapq.heappush(que, (e[0] + thisdist[v], e[1]))
+
+    # backtrack
+    v = sorted(V)[-1]
+    editSeq = []
+    while True:
+        try:
+            w = path[v]
+        except KeyError:
+            break
+        edit = edits[(w,v)]
+        if edit[0] != 'noop':
+            editSeq.append((edit[1], edit[2], edit[3], edit[4]))
+        v = w
+    return editSeq
 
 # # find maximally matching edit squence through the graph
 # def best_edit_seq(V, E, dist, edits, verby_verbose=False):
