@@ -141,7 +141,7 @@ def batch_multi_pre_rec_f1(candidates, sources, gold_edits, max_unchanged_words=
         min_stat_gold = float("inf")
         for annotator, gold in golds_set.items():
             localdist = set_weights(E, dist, edits, gold, verbose, very_verbose)
-            editSeq = best_edit_seq_bf(V, E, localdist, edits, very_verbose)
+            editSeq = best_edit_seq_ds(V, E, localdist, edits, very_verbose)
             if verbose:
                 print(">> Annotator:", annotator)
             if very_verbose:
