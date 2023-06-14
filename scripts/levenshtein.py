@@ -701,17 +701,19 @@ def transitive_arcs(V, E, dist, edits, max_unchanged_words=2, very_verbose=False
             vi = V[i]
             if very_verbose:
                 print("v _i :", vi)
-            try:
+            if (vi, vk) in edits.keys():
                 eik = edits[(vi, vk)]
-            except KeyError:
+            else:
+                continue
+            if eik >= max_unchanged_words:
                 continue
             for j in range(len(V)):
                 vj = V[j]
                 if very_verbose:
                     print("v _j :", vj)
-                try:
+                if (vk, vj) in edits.keys():
                     ekj = edits[(vk, vj)]
-                except KeyError:
+                else:
                     continue
                 dik = get_distance(dist, vi, vk)
                 dkj = get_distance(dist, vk, vj)
