@@ -695,28 +695,41 @@ def set_weights(E, dist, edits, gold_edits, verbose=False, very_verbose=False):
 def transitive_arcs(V, E, dist, edits, max_unchanged_words=2, very_verbose=False):
     if very_verbose:
         print("-- Add transitive arcs --")
+    # using dict for fast algorithm
+    G = {}
+    GR = {}
+    for v in V:
+        G[v] = []
+        GR[v] = []
+    for ed in edits.keys():
+        s, e = ed[0], ed[1]
+        G[s].append(e)
+        GR[e].append(s)
+
     for k in range(len(V)):
         vk = V[k]
         if very_verbose:
             print("v _k :", vk)
-
-        for i in range(len(V)):
-            vi = V[i]
+        # not lookup all, but only lookup the ones that are reachable
+        for i in GR[vk]:
+            vi = i
             if very_verbose:
                 print("v _i :", vi)
-            if (vi, vk) in edits.keys():
-                eik = edits[(vi, vk)]
-            else:
-                continue
-
-            for j in range(len(V)):
-                vj = V[j]
+            eik = edits[(vi, vk)]
+            # if (vi, vk) in edits.keys():
+            #     eik = edits[(vi, vk)]
+            # else:
+            #     continue
+            # not lookup all, but only lookup the ones that are reachable
+            for j in G[vk]:
+                vj = j
                 if very_verbose:
                     print("v _j :", vj)
-                if (vk, vj) in edits.keys():
-                    ekj = edits[(vk, vj)]
-                else:
-                    continue
+                ekj = edits[(vk, vj)]
+                # if (vk, vj) in edits.keys():
+                #     ekj = edits[(vk, vj)]
+                # else:
+                #     continue
                 dik = get_distance(dist, vi, vk)
                 dkj = get_distance(dist, vk, vj)
                 if dik + dkj < get_distance(dist, vi, vj):
@@ -727,6 +740,8 @@ def transitive_arcs(V, E, dist, edits, max_unchanged_words=2, very_verbose=False
                         E.append((vi, vj))
                         dist[(vi, vj)] = dik + dkj
                         edits[(vi, vj)] = eij
+                        G[vi].append(vj)
+                        GR[vj].append(vi)
     # remove noop transitive arcs 
     if very_verbose:
         print("-- Remove transitive noop arcs --")
