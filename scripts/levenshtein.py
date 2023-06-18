@@ -112,6 +112,7 @@ def batch_multi_pre_rec_f1(candidates, sources, gold_edits, max_unchanged_words=
         candidate_tok = candidate.split()
         source_tok = source.split()
         #lmatrix, backpointers = levenshtein_matrix(source_tok, candidate_tok)
+        # The ones that replace_cost is 1 and 2
         lmatrix1, backpointers1 = levenshtein_matrix(source_tok, candidate_tok, 1, 1, 1)
         lmatrix2, backpointers2 = levenshtein_matrix(source_tok, candidate_tok, 1, 1, 2)
 
@@ -119,6 +120,8 @@ def batch_multi_pre_rec_f1(candidates, sources, gold_edits, max_unchanged_words=
         V1, E1, dist1, edits1 = edit_graph(lmatrix1, backpointers1)
         V2, E2, dist2, edits2 = edit_graph(lmatrix2, backpointers2)
 
+        # dist is settled on a certain figure
+        # E is sometimes double counted
         V, E, dist, edits = merge_graph(V1, V2, E1, E2, dist1, dist2, edits1, edits2)
         if very_verbose:
             print("edit matrix 1:", lmatrix1)
