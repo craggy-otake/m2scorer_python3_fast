@@ -23,6 +23,7 @@ import re
 import sys
 from copy import deepcopy
 import heapq
+from collections import deque
 
 # batch evaluation of a list of sentences
 def batch_precision(candidates, sources, gold_edits, max_unchanged_words=2, beta=0.5, ignore_whitespace_casing=False, verbose=False):
@@ -510,6 +511,59 @@ def best_edit_seq_ds(V, E, dist, edits, verby_verbose=False):
         v = w
     return editSeq
 
+def topological_sort(G, into_num):
+    q = deque()
+    for i in into_num.keys():
+        if into_num[i] == 0:
+            q.append(i)
+    
+    ans = []
+    while q:
+        v = q.popleft()
+        ans.append(v)
+        for _, adj in G[v]:
+            into_num[adj] -= 1
+            if into_num[adj] == 0:
+                q.append(adj)
+    
+    return ans
+# find maximally matching edit squence through the graph using topological sort
+def best_edit_seq_ts(V, E, dist, edits, verby_verbose=False):
+    E_dict = {}
+    into_num = {}
+    for v in V:
+        E_dict[v] = []
+        into_num[v] = 0
+    for e in E:
+        E_dict[e[0]].append((dist[e], e[1]))
+        into_num[e[1]] += 1
+    ts = topological_sort(E_dict, into_num)
+    
+    thisdist = {}
+    for v in V:
+        thisdist[v] = float('inf')
+    thisdist[(0,0)] = 0
+    
+    path = {}
+    for v in ts:
+        for vv in E_dict[v]:
+            if thisdist[vv[1]] > thisdist[v] + vv[0]:
+                thisdist[vv[1]] = thisdist[v] + vv[0]
+                path[vv[1]] = v
+
+    # backtrack
+    v = sorted(V)[-1]
+    editSeq = []
+    while True:
+        try:
+            w = path[v]
+        except KeyError:
+            break
+        edit = edits[(w,v)]
+        if edit[0] != 'noop':
+            editSeq.append((edit[1], edit[2], edit[3], edit[4]))
+        v = w
+    return editSeq
 # # find maximally matching edit squence through the graph
 # def best_edit_seq(V, E, dist, edits, verby_verbose=False):
 #     thisdist = {}
